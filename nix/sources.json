@@ -1,4 +1,16 @@
 {
+    "dream2nix": {
+        "branch": "main",
+        "description": "Simplified nix packaging for various programming language ecosystems [maintainer=@DavHau]",
+        "homepage": "https://nix-community.github.io/dream2nix",
+        "owner": "nix-community",
+        "repo": "dream2nix",
+        "rev": "9ce00f86e96d958ac12d14c92531036e2f58297c",
+        "sha256": "1ipfkr50rjs9hnprjx2l94avnhi2a4qbzd5s2az0k0sa15shfi6k",
+        "type": "tarball",
+        "url": "https://github.com/nix-community/dream2nix/archive/9ce00f86e96d958ac12d14c92531036e2f58297c.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs": {
         "branch": "nixos-unstable",
         "description": "Nix Packages collection",
