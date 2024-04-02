@@ -36,17 +36,24 @@ AuthService.isAuthenticated = async function() {
     }
   };
   const url = `${domain}/auth/is-authenticated.json`;
-  let response;
+  let response,
+    responseJson;
 
   try {
     response = await fetch(url, fetchOptions);
   } catch (error) {
-    // Catch Network error such as connection lost.
-    throw new PassboltServiceUnavailableError(error.message);
+    if (navigator.onLine) {
+      // Catch Network error such as bad certificate or server unreachable.
+      throw new PassboltServiceUnavailableError("Unable to reach the server, an unexpected error occurred");
+    } else {
+      // Network connection lost.
+      throw new PassboltServiceUnavailableError("Unable to reach the server, you are not connected to the network");
+    }
   }
 
   try {
-    await response.json();
+    //Get response on json format
+    responseJson = await response.json();
   } catch (error) {
     // If the response cannot be parsed, it's not a Passbolt API response. It can be a nginx error (504).
     throw new PassboltBadResponseError();
@@ -58,7 +65,8 @@ AuthService.isAuthenticated = async function() {
 
   // MFA required.
   if (/mfa\/verify\/error\.json$/.test(response.url)) {
-    throw new MfaAuthenticationRequiredError();
+    //Retrieve the message error details from json
+    throw new MfaAuthenticationRequiredError(null, responseJson.body);
   } else if (response.status === 404) {
     // Entry point not found.
     throw new NotFoundError();

@@ -32,7 +32,7 @@ class SecretDecryptController {
   constructor(worker, requestId, apiClientOptions, account) {
     this.worker = worker;
     this.requestId = requestId;
-    this.resourceModel = new ResourceModel(apiClientOptions);
+    this.resourceModel = new ResourceModel(apiClientOptions, account);
     this.resourceTypeModel = new ResourceTypeModel(apiClientOptions);
     this.progressService = new ProgressService(this.worker, i18n.t('Decrypting ...'));
     this.getPassphraseService = new GetPassphraseService(account);
@@ -60,8 +60,8 @@ class SecretDecryptController {
   async exec(resourceId) {
     assertUuid(resourceId);
 
-    const resourcePromise = this.resourceModel.findForDecrypt(resourceId);
     const passphrase = await this.getPassphraseService.getPassphrase(this.worker);
+    const resourcePromise = this.resourceModel.findForDecrypt(resourceId);
     const decryptedPrivateKey = await GetDecryptedUserPrivateKeyService.getKey(passphrase);
     const resource = await resourcePromise;
     const secretSchema = await this.resourceTypeModel.getSecretSchemaById(resource.resourceTypeId);

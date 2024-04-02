@@ -11,7 +11,6 @@
  * @link          https://www.passbolt.com Passbolt(tm)
  * @since         3.4
  */
-import browser from "../../sdk/polyfill/browserPolyfill";
 import {v4 as uuidv4} from "uuid";
 import WorkersSessionStorage from "../sessionStorage/workersSessionStorage";
 import WorkerEntity from "../../model/entity/worker/workerEntity";
@@ -59,7 +58,8 @@ async function addWorkerQuickAccess(workerId, tabId) {
     id: workerId,
     name: "QuickAccess",
     tabId: tabId,
-    frameId: 0
+    frameId: 0,
+    status: WorkerEntity.STATUS_WAITING_CONNECTION
   };
   await WorkersSessionStorage.addWorker(new WorkerEntity(worker));
 }

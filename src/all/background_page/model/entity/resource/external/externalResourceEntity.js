@@ -16,18 +16,22 @@ import Entity from "passbolt-styleguide/src/shared/models/entity/abstract/entity
 import ResourceSecretsCollection from "../../secret/resource/resourceSecretsCollection";
 import EntityValidationError from "passbolt-styleguide/src/shared/models/entity/abstract/entityValidationError";
 import EntitySchema from "passbolt-styleguide/src/shared/models/entity/abstract/entitySchema";
+import TotpEntity from "../../totp/totpEntity";
 
 const ENTITY_NAME = 'ExternalResource';
 const DEFAULT_RESOURCE_NAME = '(no name)';
 
 class ExternalResourceEntity extends Entity {
   /**
-   * External resource entity constructor
-   *
-   * @param {Object} externalResourceDto external resource DTO
-   * @throws EntityValidationError if the dto cannot be converted into an entity
+   * @inheritDoc
+   * Sanitize:
+   * - Override default data using the data provided in the DTO.
+   * - Normalize the folder parent path, see ExternalFolderEntity::sanitizePath
+   * @throws {EntityValidationError} Build Rule: The collection of secrets cannot be empty.
+   * @throws {EntityValidationError} Build Rule: Verify that the secrets associated resource ID corresponds with the
+   * resource ID.
    */
-  constructor(externalResourceDto) {
+  constructor(externalResourceDto, options = {}) {
     // Default properties values
     const props = Object.assign(ExternalResourceEntity.getDefault(), externalResourceDto);
 
@@ -41,11 +45,11 @@ class ExternalResourceEntity extends Entity {
       ExternalResourceEntity.ENTITY_NAME,
       props,
       ExternalResourceEntity.getSchema()
-    ));
+    ), options);
 
     // Associations
     if (this._props.secrets) {
-      this._secrets = new ResourceSecretsCollection(this._props.secrets);
+      this._secrets = new ResourceSecretsCollection(this._props.secrets, {clone: false});
       ResourceEntity.assertValidSecrets(this._secrets, this.id);
       delete this._props.secrets;
     }
@@ -87,9 +91,11 @@ class ExternalResourceEntity extends Entity {
         "secret_clear": {
           "type": "string"
         },
+        "totp": TotpEntity.getSchema(),
         "folder_parent_path": {
           "type": "string"
-        }
+        },
+        "expired": resourceEntitySchema.properties.expired,
       }
     };
   }
@@ -215,6 +221,14 @@ class ExternalResourceEntity extends Entity {
     this._props.folder_parent_id = folderParentId;
   }
 
+  get totp() {
+    return this._props.totp;
+  }
+
+  set totp(totp) {
+    this._props.totp = totp;
+  }
+
   /**
    * Get folder parent path
    * @returns {string}
@@ -229,6 +243,14 @@ class ExternalResourceEntity extends Entity {
    */
   get resourceTypeId() {
     return this._props.resource_type_id || null;
+  }
+
+  /**
+   * Get the resource type if any
+   * @returns {(string|null)} uuid
+   */
+  get expired() {
+    return this._props.expired || null;
   }
 
   /*

@@ -11,11 +11,12 @@
  * @link          https://www.passbolt.com Passbolt(tm)
  * @since         2.11.0
  */
-import browser from "../../sdk/polyfill/browserPolyfill";
 import Log from "../../model/log";
 import ResourcesCollection from "../../model/entity/resource/resourcesCollection";
 import ResourceEntity from "../../model/entity/resource/resourceEntity";
 import Lock from "../../utils/lock";
+import {assertType} from "../../utils/assertions";
+import PasswordExpiryResourceEntity from "../../model/entity/passwordExpiry/passwordExpiryResourceEntity";
 const lock = new Lock();
 
 const RESOURCES_LOCAL_STORAGE_KEY = 'resources';
@@ -34,6 +35,9 @@ class ResourceLocalStorage {
 
   /**
    * Set the resources local storage.
+   *
+   * It's essential to understand that this function produces a duplicate of the local storage value, not a reference.
+   * Therefore, any changes made to this duplicate will not affect the original data or a cache.
    *
    * @throws {Error} if operation failed
    * @return {Promise} results object, containing every object in keys that was found in the storage area.
@@ -154,6 +158,31 @@ class ResourceLocalStorage {
           throw new Error('The resource could not be found in the local storage');
         }
         resources[resourceIndex] = resourceEntity.toDto(ResourceLocalStorage.DEFAULT_CONTAIN);
+      }
+      await browser.storage.local.set({resources: resources});
+      lock.release();
+    } catch (error) {
+      lock.release();
+      throw error;
+    }
+  }
+
+  /**
+   * Update the expiry date of a resource collection in the local storage.
+   * @param {array<PasswordExpiryResourceEntity>} passwordExpiryResourcesCollection The resources to update
+   * @throws {Error} if the resource does not exist in the local storage
+   */
+  static async updateResourcesExpiryDate(passwordExpiryResourcesCollection) {
+    await lock.acquire();
+    try {
+      const resources = await ResourceLocalStorage.get();
+      for (const passwordExpiryResourceEntity of passwordExpiryResourcesCollection) {
+        assertType(passwordExpiryResourceEntity, PasswordExpiryResourceEntity, 'The given entity is not a PasswordExpiryResourceEntity');
+        const resourceIndex = resources.findIndex(item => item.id === passwordExpiryResourceEntity.id);
+        if (resourceIndex === -1) {
+          throw new Error('The resource could not be found in the local storage');
+        }
+        resources[resourceIndex].expired = passwordExpiryResourceEntity.expired;
       }
       await browser.storage.local.set({resources: resources});
       lock.release();

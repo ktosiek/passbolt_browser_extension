@@ -3,6 +3,140 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [4.6.2] - 2024-03-29
+### Fixed
+- PB-32394 As a user defining my passphrase while activating my account I want to know if my passphrase is part of a dictionary on form submission
+- PB-32396 As a user defining my new passphrase while changing it I want to know if my new passphrase is part of a dictionary on form submission
+- PB-32401 As an administrator defining the passphrase of the generated organization account recovery key I want to know if the passphrase is part of a dictionary on form submission
+- PB-32407 As a user editing a password I am invited to confirm its edition when this one very weak in a separate dialog on form submission
+- PB-32395 As a user defining my passphrase while requesting an account recovery I want to know if my new passphrase is part of a dictionary on form submission
+- PB-32397 As a user verifying my private key passphrase while activation my account I do not want to know if my passphrase is part of a dictionary at this stage
+- PB-32399 As a user confirming my passphrase while completing an account recovery (Admin approved) I do not want to know if my passphrase is part of a dictionary on form submission
+- PB-32398 As a user confirming my passphrase while importing my private key during an account recover I do not want to know if my passphrase is part of a dictionary on form submission
+- PB-32404 As a user creating a password from the quickaccess I am invited to confirm its creation when this one is part of a dictionary in a separate dialog on form submission
+- PB-32403 As a user updating a password I am invited to confirm its edition when this one is part of a dictionary in a separate dialog on form submission
+- PB-32405 As a user auto-saving a password from the quickaccess I should not be notified if the password is part of an exposed dictionary
+- PB-32402 As a user creating a password I am invited to confirm its creation when this one is part of a dictionary in a separate dialog on form submission
+- PB-32400 As a user confirming my passphrase while importing an account kit on the desktop app I do not want to know if my passphrase is part of a dictionary on form submission
+- PB-32406 As a user creating a password I am invited to confirm its creation when this one very weak in a separate dialog on form submission
+- PB-32427 As a user creating a password from the quickaccess I am invited to confirm its creation when this one is VERY WEAK in a separate page on form submission
+
+## [4.6.0] - 2024-03-14
+### Added
+- PB-24485 As signed-in administrator I can see the healthcheck in the UI
+- PB-29051 As a user I can use ADFS as SSO provider
+- PB-29162 As signed-in administrator I can authorize only group managers to see the users workspace
+- PB-29396 As signed-in administrator I can hide the share folder capability with a RBAC
+
+### Security
+- PB-29384 As signed-in administrator I should see a 404 when accessing a non existing administration page
+- PB-29384 As signed-in user I should see a 403 when attempting to access an administration page
+
+### Fixed
+- PB-25865 As a signed-in user I want to autofill form which listen to change events
+- PB-27709 As signed-in administrator I can reconfigure the LDAP integration after a server key rotation
+- PB-29258 A signed-in users with a large data set I should have a direct feedback when selecting a resource with the checkbox
+- PB-29506 As signed-in user, when loading the application, I should scroll to the resource detected in the url
+- PB-29548 As a signed-in administrator, editing the password expiry policy, I want to be sure that I’m editing the latest version of the settings
+- PB-29606 As signed-in user I should be able to export TOTP to keepass for Windows
+- PB-29860 As signed-in user I should see the columns header translated to my language
+- PB-29861 As signed-in user I should see the filter “Expiry” named “Expired” instead
+- PB-29895 As user importing an account to the Windows application I should be able to access the getting started help page
+- PB-29961 As signed-in user I want to see the import dialog information banner below the form and before the action buttons
+- PB-30033 As a signed-in user I should be able to sign in with the quickaccess right after launching my browser
+
+### Maintenance
+- PB-25555 Upgrade outdated dev library webpack and associated
+- PB-25556 Upgrade outdated library i18next and associated
+- PB-25689 Upgrade outdated library ip-regex and associated
+- PB-25692 Upgrade openpgpjs to v5.11
+- PB-25696 Upgrade outdated library webextension-polyfill
+- PB-25699 Upgrade outdated library xregexp
+- PB-25701 Upgrade outdated library luxon
+- PB-29162 MFA user settings screens should be served by the browser extension
+- PB-30015 Homogeneize collection constructor signature
+- PB-30017 Remove collection and entity inheritance dependency
+- PB-30021 Make collection and entity DTO optionally cloneable
+- PB-30022 Reduce the number of resources collection instantiations while displaying the number of suggested resources
+- PB-30023 Reduce the number of resources collection instantiations while displaying the suggested resources in the inform menu
+- PB-30142 Homogenize collection and entity call parameters
+- PB-30143 Ensure entities DTOs are not cloned when the data is retrieved from the API or the local storage
+- PB-30156 Ensure the tags collection is not validating multiple times the entities while getting instantiated
+- PB-30324 Reduce garbage collector usage while validating large amount of data
+
+## [4.5.2] - 2024-02-12
+### Added
+- PB-28672 As a user exporting resources I should also export TOTPs
+
+### Fixed
+- PB-25865 As a signed-in user I can autofill credentials using input and change events
+- PB-29258 As a signed-in user with a large dataset I can select a resource quickly
+- PB-29548 As a signed-in administrator I should refresh password expiry cache when navigating to the password expiry administration page
+- PB-29560 As a user importing a resources from a Windows keepass kdbx I should also import TOTPs
+- PB-29606 As a user exporting a resources to a Windows keepass kdbx I should also export TOTPs
+
+## [4.5.1] - 2024-02-09
+### Fixed
+- PB-29626 As a user I should retrieve the csrf token if the instance is running from a sub-folder
+
+## [4.5.0] - 2024-02-05
+### Added
+- PB-28679 As an administrator I can set advanced password expiry settings
+- PB-28681 As a user importing a resources from a file I should also import expiry date from keepass files
+- PB-28682 As a user I can quickly mark resources as expired
+- PB-28687 As a resource owner, I can change the resource expiration date manually
+- PB-28692 As a user I can change the expiry date of a resource automatically based on the password expiry configuration
+- PB-28850 As a signed-in user creating a resource from the app I should set the expired date if default expiry period has been defined in the organisation policies
+- PB-28851 As a signed-in user creating a resource from the quickaccess I should set the expired date if default expiry period has been defined in the organisation policies
+- PB-28852 As a signed-in user creating a resource from the auto-save I should set the expired date if default expiry period has been defined in the organisation policies
+- PB-29045 As a user I want to open the quickaccess using a keyboard shortcut
+- PB-29125 As an administrator I should not see the control function AllowIfGroupManagerInOneGroup on the UI
+
+### Improved
+- PB-15269 As a user I do not want my browser extension to make multiple calls on resources.json in a row
+- PB-21484 As an administrator I can use Microsoft 365 or Outlook as SMTP providers
+- PB-22071 As an administrator I want the SSO messages to be in correct english
+- PB-25503 As an admin I should be able to enable/disable emails that request group managers to add users to groups (LDAP/AD)
+- PB-25860 As signed-in user I want to see the full name of the user at the origin of any account recovery action
+- PB-27783 As a user opening the quickaccess I should have a clear feedback if the API service is unreachable
+- PB-27961 As a signed-in user I cannot skip the administrator request to join the account recovery program
+- PB-28507 As signed-in user importing resources I should know what is supported
+- PB-28612 As a signed-in user I should see TOTP in uppercase
+- PB-28646 As an administrator in the account recovery settings I should see “Prompt” instead of “Mandatory"
+- PB-28709 Mark SASL option in Users Directory as Enterprise Edition
+- PB-28727 As an administrator in the SSO settings I should see a combobox instead of a text input for the Azure’s URL
+- PB-28923 As a user I want to be able to use passbolt in Russian
+- PB-29008 As an administrator in RBAC administration page I should not see the role to setup the desktop or mobile app if the plugin is not enabled
+- PB-29159 As a signed-in user I want the Mfa screen to be available when using the bext 4.4 and API 4.5
+- PB-29263 Replace the mechanism to have CSRF token from the cookie
+
+### Security
+- PB-29194 Upgrade vulnerable library web-ext
+- PB-28658 Mitigate browser extension supply chain attack
+- PB-28659 Mitigate browser styleguide supply chain attack
+- PB-28660 Mitigate browser windows app supply chain attack
+
+### Fixed
+- PB-22864 As a signed-in user, I should see a relevant error if I use special characters as security token
+- PB-24496 As a user I should be able to use a passphrase with emoji
+- PB-28283 As a user when I preview a secret I should see the activity sidebar updated
+- PB-28540 As a user I should scroll automatically to the resource selected from the route
+- PB-28625 As a user I can open resource url from the resource sidebar on Firefox
+- PB-28632 As a user Fix design TOTP button disabled on create and edit resource
+- PB-28696 As a user I should fill secret for TOTP with spaces
+- PB-28721 As a user I can see the beta chip next to the desktop app menu item in the users settings menu
+- PB-28753 As a user I should be able to edit a standalone TOTP from contextual menu
+- PB-28880 As a user I should not see an error when I update the description of a resource with TOTP from the information panel
+- PB-28842 As a user I can reach the Windows store passbolt app from the Desktop app setup screen
+- PB-28282 As a user deleting a TOTP I should see the relevant dialog title mentioning Resource and not password
+- PB-28873 As a signed-in user when I autofill input fields I should trigger a change event
+- PB-29006 As a user I should not have my browser extension crashing when it receives an unsupported RBAC control_function value
+
+### Maintenance
+- PB-27972 Refactor code of SSO settings
+- PB-28592 Fix minimum gecko version in firefox manifest.json
+- PB-29020 Fix detection pagemod duplicate
+
 ## [4.4.2] - 2023-11-06
 ### Fixed
 - PB-28880 Fix resource with TOTP when description is updated from information panel
@@ -1393,7 +1527,11 @@ self registration settings option in the left-side bar
 - AP: User with plugin installed
 - LU: Logged in user
 
-[Unreleased]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.4.2...HEAD
+[Unreleased]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.6.0...HEAD
+[4.6.0]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.5.2...v4.6.0
+[4.5.2]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.5.1...v.4.5.2
+[4.5.1]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.5.0...v.4.5.1
+[4.5.0]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.4.2...v.4.5.0
 [4.4.2]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.4.0...v.4.4.2
 [4.4.0]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.3.1...v.4.4.0
 [4.3.1]: https://github.com/passbolt/passbolt_browser_extension/compare/v4.3.0...v.4.3.1

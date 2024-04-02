@@ -18,7 +18,6 @@ import {ConfigEvents} from "../event/configEvents";
 import BuildApiClientOptionsService
   from "../service/account/buildApiClientOptionsService";
 import {PownedPasswordEvents} from '../event/pownedPasswordEvents';
-import {mockApiResponse} from "../../../../test/mocks/mockApiResponse";
 import {enableFetchMocks} from "jest-fetch-mock";
 
 jest.spyOn(BuildAccountRecoverService, "buildFromRecoverUrl");
@@ -47,7 +46,7 @@ describe("Recover", () => {
           }
         }
       };
-      fetch.doMockOnceIf(new RegExp('/users/csrf-token.json'), async() => mockApiResponse("csrf-token"));
+      jest.spyOn(browser.cookies, "get").mockImplementation(() => ({value: "csrf-token"}));
       // process
       await Recover.attachEvents(port);
       // expectations

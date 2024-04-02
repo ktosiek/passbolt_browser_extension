@@ -17,7 +17,7 @@ import {enableFetchMocks} from "jest-fetch-mock";
 import each from "jest-each";
 import User from "../../model/user";
 import Keyring from "../../model/keyring";
-import {defaultApiClientOptions} from "../../service/api/apiClient/apiClientOptions.test.data";
+import {defaultApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions.test.data";
 import RecoverAccountController from "./recoverAccountController";
 import AccountAccountRecoveryEntity from "../../model/entity/account/accountAccountRecoveryEntity";
 import {defaultAccountAccountRecoveryDto} from "../../model/entity/account/accountAccountRecoveryEntity.test.data";
@@ -138,13 +138,13 @@ describe("RecoverAccountController", () => {
       // Mock API fetch account recovery request get response.
       fetch.doMockOnce(() => mockApiResponse(accountRecoveryRequestDto));
       // Mock API complete request.
-      fetch.doMockOnce(() => Promise.reject(new Error("Unable to complete the recover.")));
+      fetch.doMockOnce(() => Promise.reject(new Error("Unable to reach the server, an unexpected error occurred")));
 
       const controller = new RecoverAccountController(null, null, apiClientOptions, accountRecovery);
       const promise = controller.exec(passphrase);
 
       expect.assertions(2);
-      await expect(promise).rejects.toThrow("Unable to complete the recover.");
+      await expect(promise).rejects.toThrow("Unable to reach the server, an unexpected error occurred");
       expect(() => User.getInstance().get()).toThrow("The user is not set");
     });
 

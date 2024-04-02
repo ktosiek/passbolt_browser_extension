@@ -16,7 +16,7 @@ import "../../../../../test/mocks/mockCryptoKey";
 import MockExtension from "../../../../../test/mocks/mockExtension";
 import AccountEntity from "../../model/entity/account/accountEntity";
 import {defaultAccountDto} from "../../model/entity/account/accountEntity.test.data";
-import {defaultApiClientOptions} from "../../service/api/apiClient/apiClientOptions.test.data";
+import {defaultApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions.test.data";
 import SsoDataStorage from "../../service/indexedDB_storage/ssoDataStorage";
 import GenerateSsoKitService from "../../service/sso/generateSsoKitService";
 import AuthLoginController from "./authLoginController";
@@ -124,7 +124,7 @@ describe("AuthLoginController", () => {
     });
 
     it("Should sign-in the user and generate an SSO kit if SSO organization settings is enabled and a kit is not available.", async() => {
-      expect.assertions(1);
+      expect.assertions(2);
       SsoDataStorage.setMockedData(null);
       const ssoSettingsDto = withAzureSsoSettings();
       jest.spyOn(GenerateSsoKitService, "generate");
@@ -134,6 +134,7 @@ describe("AuthLoginController", () => {
       const account = new AccountEntity(defaultAccountDto());
       const controller = new AuthLoginController(null, null, defaultApiClientOptions(), account);
       await controller.exec(passphrase, true);
+      expect(GenerateSsoKitService.generate).toHaveBeenCalledTimes(1);
       expect(GenerateSsoKitService.generate).toHaveBeenCalledWith(passphrase, ssoSettingsDto.provider);
     });
 

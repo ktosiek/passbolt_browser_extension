@@ -12,6 +12,8 @@
  */
 import ExternalFolderEntity from "../../entity/folder/external/externalFolderEntity";
 import * as kdbxweb from 'kdbxweb';
+import TotpEntity from "../../entity/totp/totpEntity";
+import ExportResourcesFileEntity from "../../entity/export/exportResourcesFileEntity";
 
 class ResourcesKdbxExporter {
   /**
@@ -64,7 +66,7 @@ class ResourcesKdbxExporter {
 
   /**
    * Create a kdbx group based on an external folder entity
-   * @param {kdbxweb.KdbxDb} kdbxDb The kdbx database
+   * @param {kdbxweb.Kdbx} kdbxDb The kdbx database
    * @param {ExternalFolderEntity} externalFolderEntity The folder to export
    * @param {kdbxweb.Group} parentKdbxGroup The parent kdbx group
    */
@@ -78,7 +80,7 @@ class ResourcesKdbxExporter {
 
   /**
    * Create a kdbx entity based on an external resource entity
-   * @param {kdbxweb.KdbxDb} kdbxDb The kdbx database
+   * @param {kdbxweb.Kdbx} kdbxDb The kdbx database
    * @param {ExternalResourceEntity} externalResourceEntity The resource to export
    * @param {kdbxweb.Group} parentKdbxGroup The parent kdbx group
    */
@@ -89,8 +91,47 @@ class ResourcesKdbxExporter {
     if (externalResourceEntity.secretClear) {
       kdbxEntry.fields.set('Password', kdbxweb.ProtectedValue.fromString(externalResourceEntity.secretClear));
     }
+    if (externalResourceEntity.totp) {
+      this.setTotpField(kdbxEntry, externalResourceEntity);
+    }
     kdbxEntry.fields.set('URL', externalResourceEntity.uri);
     kdbxEntry.fields.set('Notes', externalResourceEntity.description);
+
+    if (externalResourceEntity.expired) {
+      kdbxEntry.times.expiryTime = new Date(externalResourceEntity.expired);
+      kdbxEntry.times.expires = true;
+    } else {
+      //explicitly set the expiryTime to undefined as it seems that it takes the current time otherwise
+      kdbxEntry.times.expiryTime = undefined;
+      kdbxEntry.times.expires = false;
+    }
+  }
+
+  /**
+   * Set the TOTP fields according to the kdbx format
+   * @param {kdbxweb.KdbxEntry} kdbxEntry
+   * @param {ExternalResourceEntity} externalResourceEntity
+   */
+  setTotpField(kdbxEntry, externalResourceEntity) {
+    const totp = new TotpEntity(TotpEntity.sanitizeDto(externalResourceEntity.totp));
+    switch (this.exportEntity.format) {
+      case ExportResourcesFileEntity.FORMAT_KDBX: {
+        kdbxEntry.fields.set('TimeOtp-Secret-Base32', kdbxweb.ProtectedValue.fromString(totp.secret_key));
+        // Adapt algorithm to match keepass windows
+        const algorithm = `HMAC-${totp.algorithm.substring(0, 3)}-${totp.algorithm.substring(3)}`;
+        kdbxEntry.fields.set('TimeOtp-Algorithm', algorithm);
+        kdbxEntry.fields.set('TimeOtp-Length', totp.digits.toString());
+        kdbxEntry.fields.set('TimeOtp-Period', totp.period.toString());
+        break;
+      }
+      case ExportResourcesFileEntity.FORMAT_KDBX_OTHERS: {
+        const totpUrl = totp.createUrlFromResource(externalResourceEntity);
+        kdbxEntry.fields.set('otp', kdbxweb.ProtectedValue.fromString(totpUrl.toString()));
+        break;
+      }
+      default:
+        break;
+    }
   }
 }
 

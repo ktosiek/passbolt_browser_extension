@@ -14,7 +14,7 @@
 
 import {v4 as uuidv4} from "uuid";
 import DeleteCommentController from "./deleteCommentController";
-import {defaultApiClientOptions} from "../../service/api/apiClient/apiClientOptions.test.data";
+import {defaultApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions.test.data";
 import {mockApiResponse} from "../../../../../test/mocks/mockApiResponse";
 import {enableFetchMocks} from "jest-fetch-mock";
 import CommentModel from "../../model/comment/commentModel";
@@ -90,7 +90,7 @@ describe("DeleteCommentController", () => {
       expect(spy).toHaveBeenCalledTimes(1);
     });
     it("Should call exec method and send ERROR to worker when fetch is failing", async() => {
-      const mockedError = new TypeError("Service error. This is a mocked error");
+      const mockedError = new TypeError("Unable to reach the server, an unexpected error occurred");
       fetch.doMock(() => { throw mockedError; });
       const controller = new DeleteCommentController(mockedWorker, null, defaultApiClientOptions());
       const spy = jest.spyOn(controller, "exec");

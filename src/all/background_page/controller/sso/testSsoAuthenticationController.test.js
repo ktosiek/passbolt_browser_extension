@@ -15,11 +15,11 @@ import {enableFetchMocks} from "jest-fetch-mock";
 import {v4 as uuid} from "uuid";
 import {mockApiResponse, mockApiResponseError} from "../../../../../test/mocks/mockApiResponse";
 import {withAzureSsoSettings} from "./saveSsoSettingsAsDraftController.test.data";
-import {defaultApiClientOptions} from "../../service/api/apiClient/apiClientOptions.test.data";
+import {defaultApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions.test.data";
 import TestSsoAuthenticationController from "./testSsoAuthenticationController";
-import PassboltApiFetchError from "../../error/passboltApiFetchError";
+import PassboltApiFetchError from "passbolt-styleguide/src/shared/lib/Error/PassboltApiFetchError";
 import SsoLoginUrlEntity from "../../model/entity/sso/ssoLoginUrlEntity";
-import SsoSettingsEntity from "../../model/entity/sso/ssoSettingsEntity";
+import AzureSsoSettingsEntity from "passbolt-styleguide/src/shared/models/entity/ssoSettings/AzureSsoSettingsEntity";
 
 const mock_getSsoTokenFromThirdParty = jest.fn();
 const mock_closeHandler = jest.fn();
@@ -65,7 +65,7 @@ describe("TestSsoAuthenticationController", () => {
       const resultingToken = await controller.exec(settingsId);
 
       expect(mock_getSsoTokenFromThirdParty).toHaveBeenCalledTimes(1);
-      expect(mock_getSsoTokenFromThirdParty).toHaveBeenCalledWith(new SsoLoginUrlEntity(urlToHit, SsoSettingsEntity.AZURE));
+      expect(mock_getSsoTokenFromThirdParty).toHaveBeenCalledWith(new SsoLoginUrlEntity(urlToHit, AzureSsoSettingsEntity.PROVIDER_ID));
       expect(mock_closeHandler).toHaveBeenCalledTimes(1);
       expect(resultingToken).toBe(ssoLoginSuccessToken);
     });

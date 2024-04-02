@@ -16,19 +16,19 @@ import EntitySchema from "passbolt-styleguide/src/shared/models/entity/abstract/
 
 const ENTITY_NAME = 'Worker';
 
+const STATUS_WAITING_CONNECTION = 'waiting_connection';
+const STATUS_CONNECTED = 'connected';
+
 class WorkerEntity extends Entity {
   /**
-   * Entity constructor
-   *
-   * @param {Object} workerDto worker DTO
-   * @throws EntityValidationError if the dto cannot be converted into an entity
+   * @inheritDoc
    */
-  constructor(workerDto) {
+  constructor(workerDto, options = {}) {
     super(EntitySchema.validate(
       WorkerEntity.ENTITY_NAME,
       workerDto,
       WorkerEntity.getSchema()
-    ));
+    ), options);
   }
 
   /**
@@ -41,7 +41,8 @@ class WorkerEntity extends Entity {
       "required": [
         "id",
         "tabId",
-        "name"
+        "name",
+        "status"
       ],
       "properties": {
         "id": {
@@ -60,6 +61,10 @@ class WorkerEntity extends Entity {
         },
         "name": {
           "type": "string",
+        },
+        "status": {
+          "type": "string",
+          "enum": [this.STATUS_WAITING_CONNECTION, this.STATUS_CONNECTED]
         }
       }
     };
@@ -105,6 +110,57 @@ class WorkerEntity extends Entity {
     return this._props.name;
   }
 
+  /**
+   * Get worker status
+   * @returns {string} string
+   */
+  get status() {
+    return this._props.status;
+  }
+
+  /*
+   * ==================================================
+   * Setters
+   * ==================================================
+   */
+  /**
+   * Set the frame id
+   * @param frameId
+   */
+  set frameId(frameId) {
+    this._props.frameId = frameId;
+  }
+
+  /**
+   * Set the status
+   * @param status
+   */
+  set status(status) {
+    const propSchema = WorkerEntity.getSchema().properties.status;
+    this._props.status = EntitySchema.validateProp("status", status, propSchema);
+  }
+
+  /*
+   * ==================================================
+   * Methods
+   * ==================================================
+   */
+  /**
+   * Is waiting connection status
+   * @return {boolean}
+   */
+  get isWaitingConnection() {
+    return this.status === STATUS_WAITING_CONNECTION;
+  }
+
+  /**
+   * Is connected status
+   * @return {boolean}
+   */
+  get isConnected() {
+    return this.status === STATUS_CONNECTED;
+  }
+
   /*
    * ==================================================
    * Static properties getters
@@ -116,6 +172,22 @@ class WorkerEntity extends Entity {
    */
   static get ENTITY_NAME() {
     return ENTITY_NAME;
+  }
+
+  /**
+   * WorkerEntity.STATUS_APPROVED
+   * @returns {string}
+   */
+  static get STATUS_WAITING_CONNECTION() {
+    return STATUS_WAITING_CONNECTION;
+  }
+
+  /**
+   * WorkerEntity.STATUS_REJECTED
+   * @returns {string}
+   */
+  static get STATUS_CONNECTED() {
+    return STATUS_CONNECTED;
   }
 }
 

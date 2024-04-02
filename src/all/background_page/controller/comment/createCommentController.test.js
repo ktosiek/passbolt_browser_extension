@@ -15,7 +15,7 @@
 import {enableFetchMocks} from "jest-fetch-mock";
 import MockExtension from "../../../../../test/mocks/mockExtension";
 import {commentCreationMock, commentResponseMock} from "../../model/entity/comment/comments.test.data";
-import {defaultApiClientOptions} from "../../service/api/apiClient/apiClientOptions.test.data";
+import {defaultApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions.test.data";
 import {mockApiResponse} from "../../../../../test/mocks/mockApiResponse";
 import CreateCommentController from "./createCommentController";
 import {v4 as uuidv4} from "uuid";
@@ -70,7 +70,7 @@ describe("CreateCommentController", () => {
       expect(spy).toHaveBeenCalled();
     });
     it("Should raise an error if service is unavailable", async() => {
-      const mockedError = new TypeError("Service error. This is a mocked error");
+      const mockedError = new TypeError("Unable to reach the server, an unexpected error occurred");
       fetch.doMock(() => { throw mockedError; });
       const controller = new CreateCommentController(mockedWorker, null, defaultApiClientOptions());
       const spy = jest.spyOn(controller.commentModel, "create");
@@ -88,6 +88,18 @@ describe("CreateCommentController", () => {
       expect.assertions(1);
 
       expectInvalidField(controller, mockCreation);
+    });
+    it("Should raise an error if user is offline", async() => {
+      const mockedError = new TypeError("Unable to reach the server, you are not connected to the network");
+      fetch.doMock(() => { throw mockedError; });
+      const controller = new CreateCommentController(mockedWorker, null, defaultApiClientOptions());
+      const spy = jest.spyOn(controller.commentModel, "create");
+      jest.spyOn(navigator, 'onLine', 'get').mockReturnValueOnce(false);
+
+      expect.assertions(2);
+
+      await expect(controller.exec(mockApiCreation)).rejects.toThrowError(mockedError);
+      expect(spy).toHaveBeenCalled();
     });
   });
 });

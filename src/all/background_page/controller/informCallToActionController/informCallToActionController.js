@@ -12,7 +12,6 @@
  * @since         3.3.0
  */
 import GpgAuth from "../../model/gpgauth";
-import browser from "../../sdk/polyfill/browserPolyfill";
 import User from "../../model/user";
 import ResourceModel from "../../model/resource/resourceModel";
 import {QuickAccessService} from "../../service/ui/quickAccess.service";
@@ -26,10 +25,11 @@ class InformCallToActionController {
    * InformCallToActionController constructor
    * @param {Worker} worker
    * @param {ApiClientOptions} clientOptions
+   * @param {AccountEntity} account the user account
    */
-  constructor(worker, clientOptions) {
+  constructor(worker, clientOptions, account) {
     this.worker = worker;
-    this.resourceModel = new ResourceModel(clientOptions);
+    this.resourceModel = new ResourceModel(clientOptions, account);
   }
 
   /**

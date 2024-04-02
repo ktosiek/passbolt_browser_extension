@@ -42,7 +42,7 @@ import FindUserPassphrasePoliciesController from "../controller/userPassphrasePo
 import SaveUserPassphrasePoliciesController from "../controller/userPassphrasePolicies/saveUserPassphrasePoliciesController";
 import SavePasswordExpirySettingsController from "../controller/passwordExpiry/savePasswordExpirySettingsController";
 import DeletePasswordExpirySettingsController from "../controller/passwordExpiry/deletePasswordExpirySettingsController";
-import FindPasswordExpirySettingsController from "../controller/passwordExpiry/findPasswordExpirySettingsController";
+import GetOrFindPasswordExpirySettingsController from "../controller/passwordExpiry/getOrFindPasswordExpirySettingsController";
 
 const listen = function(worker, apiClientOptions, account) {
   const authenticationEventController = new AuthenticationEventController(worker);
@@ -236,18 +236,18 @@ const listen = function(worker, apiClientOptions, account) {
    * ==================================================================================
    */
 
-  worker.port.on('passbolt.password-expiry.find', async requestId => {
-    const controller = new FindPasswordExpirySettingsController(worker, requestId, apiClientOptions);
-    await controller._exec();
+  worker.port.on('passbolt.password-expiry.get-or-find', async(requestId, refreshCache = false) => {
+    const controller = new GetOrFindPasswordExpirySettingsController(worker, requestId, account, apiClientOptions);
+    await controller._exec(refreshCache);
   });
 
   worker.port.on('passbolt.password-expiry.save', async(requestId, passwordExpirySettingsDto) => {
-    const controller = new SavePasswordExpirySettingsController(worker, requestId, apiClientOptions);
+    const controller = new SavePasswordExpirySettingsController(worker, requestId, account, apiClientOptions);
     await controller._exec(passwordExpirySettingsDto);
   });
 
   worker.port.on('passbolt.password-expiry.delete', async(requestId, passwordExpiryId) => {
-    const controller = new DeletePasswordExpirySettingsController(worker, requestId, apiClientOptions);
+    const controller = new DeletePasswordExpirySettingsController(worker, requestId, account, apiClientOptions);
     await controller._exec(passwordExpiryId);
   });
 

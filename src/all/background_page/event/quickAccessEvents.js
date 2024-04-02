@@ -4,19 +4,22 @@
  * @copyright (c) 2019 Passbolt SA
  * @licence GNU Affero General Public License http://www.gnu.org/licenses/agpl-3.0.en.html
  */
-import browser from "../sdk/polyfill/browserPolyfill";
-import User from "../model/user";
 import BrowserTabService from "../service/ui/browserTab.service";
-import SecretDecryptController from "../controller/secret/secretDecryptController";
 import ResourceInProgressCacheService from "../service/cache/resourceInProgressCache.service";
 import i18n from "../sdk/i18n";
-import WorkerService from "../service/worker/workerService";
 import FindMeController from "../controller/rbac/findMeController";
 import GetOrFindLoggedInUserController from "../controller/user/getOrFindLoggedInUserController";
 import GetOrFindPasswordPoliciesController from "../controller/passwordPolicies/getOrFindPasswordPoliciesController";
-import ResourceModel from "../model/resource/resourceModel";
+import AutofillController from "../controller/autofill/AutofillController";
+import GetOrFindPasswordExpirySettingsController from "../controller/passwordExpiry/getOrFindPasswordExpirySettingsController";
 
-const listen = function(worker, _, account) {
+/**
+ * Listens to the quickaccess application events
+ * @param {Worker} worker
+ * @param {ApiClientOptions} apiClientOptions the api client options
+ * @param {AccountEntity} account the user account
+ */
+const listen = function(worker, apiClientOptions, account) {
   /*
    * Use a resource on the current tab.
    *
@@ -39,26 +42,8 @@ const listen = function(worker, _, account) {
     } catch (error) {
       worker.port.emit(requestId, 'ERROR', error);
     }
-
-    try {
-      const apiClientOptions = await User.getInstance().getApiClientOptions();
-      const controller = new SecretDecryptController(worker, requestId, apiClientOptions, account);
-      const plaintextEntity = await controller.exec(resourceId);
-      const resourceModel = new ResourceModel(apiClientOptions);
-      const resource = await resourceModel.getById(resourceId);
-
-      // Define what to do autofill
-      const username = resource.username || '';
-      const password = plaintextEntity?.password || '';
-
-      // Current active tab's url is passing to quick access to check the same origin request
-      const webIntegrationWorker = await WorkerService.get('WebIntegration', tab.id);
-      await webIntegrationWorker.port.request('passbolt.quickaccess.fill-form', username, password, tab.url);
-      worker.port.emit(requestId, 'SUCCESS');
-    } catch (error) {
-      console.error(error);
-      worker.port.emit(requestId, 'ERROR', error);
-    }
+    const autofillController = new AutofillController(worker, requestId, apiClientOptions, account);
+    await autofillController._exec(resourceId, tab.id);
   });
 
   /*
@@ -125,7 +110,6 @@ const listen = function(worker, _, account) {
    * @param refreshCache {bool} (Optional) Default false. Should request the API and refresh the cache.
    */
   worker.port.on('passbolt.users.find-logged-in-user', async(requestId, refreshCache = false) => {
-    const apiClientOptions = await User.getInstance().getApiClientOptions();
     const controller = new GetOrFindLoggedInUserController(worker, requestId, apiClientOptions, account);
     await controller._exec(refreshCache);
   });
@@ -137,7 +121,6 @@ const listen = function(worker, _, account) {
    */
 
   worker.port.on('passbolt.rbacs.find-me', async(requestId, name) => {
-    const apiClientOptions = await User.getInstance().getApiClientOptions();
     const controller = new FindMeController(worker, requestId, apiClientOptions, account);
     await controller._exec(name);
   });
@@ -149,9 +132,13 @@ const listen = function(worker, _, account) {
    */
 
   worker.port.on('passbolt.password-policies.get', async requestId => {
-    const apiClientOptions = await User.getInstance().getApiClientOptions();
     const controller = new GetOrFindPasswordPoliciesController(worker, requestId, account, apiClientOptions);
     await controller._exec();
+  });
+
+  worker.port.on('passbolt.password-expiry.get-or-find', async(requestId, refreshCache = false) => {
+    const controller = new GetOrFindPasswordExpirySettingsController(worker, requestId, account, apiClientOptions);
+    await controller._exec(refreshCache);
   });
 };
 

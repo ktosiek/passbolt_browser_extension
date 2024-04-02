@@ -4,10 +4,9 @@
  * @copyright (c) 2017 Passbolt SARL
  * @licence GNU Affero General Public License http://www.gnu.org/licenses/agpl-3.0.en.html
  */
-import UserService from "../service/api/user/userService";
 import {Config} from "./config";
 import UserSettings from "./userSettings/userSettings";
-import ApiClientOptions from "../service/api/apiClient/apiClientOptions";
+import {ApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions";
 import Validator from "validator";
 import {ValidatorRule} from "../utils/validatorRules";
 import PassphraseStorageService from "../service/session_storage/passphraseStorageService";
@@ -286,12 +285,9 @@ const User = (function() {
    * @return {Promise<void>}
    */
   this.retrieveAndStoreCsrfToken = async function() {
-    // Don't use the getApiClientOptions. It will create a loop as it calls this method to retrieve the csrf token.
-    const apiClientOptions = (new ApiClientOptions())
-      .setBaseUrl(this.settings.getDomain());
-    const userService = new UserService(apiClientOptions);
-    const csrfToken = await userService.findCsrfToken();
-    this.setCsrfToken(csrfToken);
+    const url = this.settings.getDomain().slice(-1) === "/" ? this.settings.getDomain() : `${this.settings.getDomain()}/`;
+    const csrfToken = await browser.cookies.get({name: "csrfToken", url: url});
+    this.setCsrfToken(csrfToken?.value);
   };
 
   /**
@@ -325,24 +321,12 @@ const User = (function() {
   };
 
   /**
-   * Return API Client options such as Domain and CSRF token
-   * @param {object?} options (optional)
-   * - requireCsrfToken {bool}: Should the csrf token should be set, default true
+   * Return API Client options such as Domain.
    * @return {ApiClientOptions} apiClientOptions
    */
-  this.getApiClientOptions = async function(options) {
-    options = Object.assign({
-      requireCsrfToken: true,
-    }, options);
-
-    const apiClientOptions = (new ApiClientOptions())
+  this.getApiClientOptions = async function() {
+    return new ApiClientOptions()
       .setBaseUrl(this.settings.getDomain());
-
-    if (options.requireCsrfToken) {
-      apiClientOptions.setCsrfToken(await this.getOrFetchCsrfToken());
-    }
-
-    return apiClientOptions;
   };
 
   /**

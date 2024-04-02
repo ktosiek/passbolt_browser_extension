@@ -11,8 +11,7 @@
  * @link          https://www.passbolt.com Passbolt(tm)
  * @since         3.6.0
  */
-import UserService from "../api/user/userService";
-import ApiClientOptions from "../api/apiClient/apiClientOptions";
+import {ApiClientOptions} from "passbolt-styleguide/src/shared/lib/apiClient/apiClientOptions";
 
 class BuildApiClientOptionsService {
   /**
@@ -30,13 +29,8 @@ class BuildApiClientOptionsService {
    * @returns {Promise<ApiClientOptions>}
    */
   static async buildFromDomain(domain) {
-    const apiClientOptions = (new ApiClientOptions())
+    return new ApiClientOptions()
       .setBaseUrl(domain);
-
-    const userService = new UserService(apiClientOptions);
-    apiClientOptions.setCsrfToken(await userService.findCsrfToken());
-
-    return apiClientOptions;
   }
 }
 

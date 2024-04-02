@@ -14,7 +14,7 @@
 
 import {enableFetchMocks} from "jest-fetch-mock";
 import {mockApiResponse, mockApiResponseError} from "../../../../../../test/mocks/mockApiResponse";
-import PassboltApiFetchError from "../../../error/passboltApiFetchError";
+import PassboltApiFetchError from "passbolt-styleguide/src/shared/lib/Error/PassboltApiFetchError";
 import AccountEntity from "../../../model/entity/account/accountEntity";
 import BuildApiClientOptionsService from "../../account/buildApiClientOptionsService";
 import {defaultAccountDto} from "../../../model/entity/account/accountEntity.test.data";
@@ -26,8 +26,8 @@ describe("PasswordPoliciesService", () => {
 
   beforeEach(async() => {
     enableFetchMocks();
-    jest.resetAllMocks();
-    fetch.doMockIf(/users\/csrf-token\.json/, () => mockApiResponse("csrf-token"));
+    fetch.resetMocks();
+    jest.spyOn(browser.cookies, "get").mockImplementationOnce(() => ({value: "csrf-token"}));
 
     const account = new AccountEntity(defaultAccountDto());
     apiClientOptions = await BuildApiClientOptionsService.buildFromAccount(account);

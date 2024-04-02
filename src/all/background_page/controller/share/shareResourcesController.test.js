@@ -17,6 +17,8 @@ import DecryptMessageService from "../../service/crypto/decryptMessageService";
 import User from "../../model/user";
 import ShareResourcesController from "./shareResourcesController";
 import MockExtension from "../../../../../test/mocks/mockExtension";
+import AccountEntity from "../../model/entity/account/accountEntity";
+import {defaultAccountDto} from "../../model/entity/account/accountEntity.test.data";
 
 const {enableFetchMocks} = require("jest-fetch-mock");
 const {mockApiResponse} = require("../../../../../test/mocks/mockApiResponse");
@@ -60,6 +62,7 @@ describe("ShareResourcesController", () => {
       expect.assertions(2 * resourceShareUpdateCallCount + isPermissionExpectedCallcount + decryptedMessageCallCount);
 
       // preparation of the keyring data to set the 3 needed users
+      const account = new AccountEntity(defaultAccountDto());
       await MockExtension.withConfiguredAccount(); //curent user is ada with her private set in the keyring
       const keyring = new Keyring();
       await keyring.importPublic(pgpKeys.admin.public, users.admin.id);
@@ -96,7 +99,10 @@ describe("ShareResourcesController", () => {
       const genereteChangesFromExpectedNewResourceUserCouples = newResourceUserCouples => {
         const changes = [];
         newResourceUserCouples.forEach(resourceUser => {
-          const newResourceUserCouple = createChangesDto({aco_foreign_key: resourceUser.resource, aro_foreign_key: resourceUser.user});
+          const newResourceUserCouple = createChangesDto({
+            aco_foreign_key: resourceUser.resource,
+            aro_foreign_key: resourceUser.user
+          });
           changes.push(newResourceUserCouple);
         });
         return changes;
@@ -185,10 +191,65 @@ describe("ShareResourcesController", () => {
       fetch.doMockOnce(() => mockApiResponse([]));
 
       // finally we can call the controller with the data as everything is setup.
-      const clientOptions = await User.getInstance().getApiClientOptions({requireCsrfToken: false});
-      const controller = new ShareResourcesController(null, null, clientOptions);
+      const clientOptions = await User.getInstance().getApiClientOptions();
+      const controller = new ShareResourcesController(null, null, clientOptions, account);
       controller.getPassphraseService.getPassphrase.mockResolvedValue(pgpKeys.ada.passphrase);
       await controller.main(resourcesDto, changesDto);
+    });
+
+
+    /**
+     * This scenario is the following:
+     *  - error: expect an array of ACOs
+     */
+    it("Error expect array of ACOs", async() => {
+      expect.assertions(1);
+
+      // preparation of the keyring data to set the 3 needed users
+      const account = new AccountEntity(defaultAccountDto());
+      await MockExtension.withConfiguredAccount(); //curent user is ada with her private set in the keyring
+      // 1st API call is for the keyring sync
+      fetch.doMockOnce(() => mockApiResponse([]));
+
+      // finally we can call the controller with the data as everything is setup.
+      const clientOptions = await User.getInstance().getApiClientOptions();
+      const controller = new ShareResourcesController(null, null, clientOptions, account);
+      controller.getPassphraseService.getPassphrase.mockResolvedValue(pgpKeys.ada.passphrase);
+      try {
+        await controller.main([], []);
+      } catch (error) {
+        expect(error.message).toStrictEqual("bulkShareAggregateChanges expect an array of ACOs");
+      }
+    });
+
+    /**
+     * This scenario is the following:
+     *  - error: expect an array of changes
+     */
+    it("Error expect array of changes", async() => {
+      expect.assertions(1);
+
+      // preparation of the keyring data to set the 3 needed users
+      const account = new AccountEntity(defaultAccountDto());
+      await MockExtension.withConfiguredAccount(); //curent user is ada with her private set in the keyring
+      // 1st API call is for the keyring sync
+      fetch.doMockOnce(() => mockApiResponse([]));
+
+      /*
+       * this is one of the parameter that the controller requires.
+       * some ids are generated randomly so we catch them after as we need it
+       */
+      const resourcesDto = await _3ResourcesSharedWith3UsersResourcesDto();
+
+      // finally we can call the controller with the data as everything is setup.
+      const clientOptions = await User.getInstance().getApiClientOptions();
+      const controller = new ShareResourcesController(null, null, clientOptions, account);
+      controller.getPassphraseService.getPassphrase.mockResolvedValue(pgpKeys.ada.passphrase);
+      try {
+        await controller.main(resourcesDto, []);
+      } catch (error) {
+        expect(error.message).toStrictEqual("bulkShareAggregateChanges expect an array of changes");
+      }
     });
   });
 });

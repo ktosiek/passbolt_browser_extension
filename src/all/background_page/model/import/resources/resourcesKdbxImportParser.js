@@ -14,6 +14,11 @@ import ExternalFolderEntity from "../../entity/folder/external/externalFolderEnt
 import ExternalResourceEntity from "../../entity/resource/external/externalResourceEntity";
 import ImportError from "../../../error/importError";
 import * as kdbxweb from 'kdbxweb';
+import {
+  RESOURCE_TYPE_PASSWORD_AND_DESCRIPTION_SLUG,
+  RESOURCE_TYPE_PASSWORD_DESCRIPTION_TOTP_SLUG
+} from "../../entity/resourceType/resourceTypeEntity";
+import TotpEntity from "../../entity/totp/totpEntity";
 
 class ResourcesKdbxImportParser {
   /**
@@ -115,34 +120,41 @@ class ResourcesKdbxImportParser {
 
   /**
    * Parse a KdbxEntry and extract the resource
-   * @param {KdbxEntry} kdbxEntry The entry
+   * @param {kdbxweb.KdbxEntry} kdbxEntry The entry
    * @returns {Object}
    */
   parseResource(kdbxEntry) {
+    let resourceTypeSlug = RESOURCE_TYPE_PASSWORD_AND_DESCRIPTION_SLUG;
     const externalResourceDto = {
       name: kdbxEntry.fields.get('Title') ? kdbxEntry.fields.get('Title').trim() : "",
       uri: kdbxEntry.fields.get('URL') ? kdbxEntry.fields.get('URL').trim() : "",
       username: kdbxEntry.fields.get('UserName') ? kdbxEntry.fields.get('UserName').trim() : "",
       description: kdbxEntry.fields.get('Notes') ? kdbxEntry.fields.get('Notes').trim() : "",
       folder_parent_path: this.getKdbxEntryPath(kdbxEntry),
-      secret_clear: '' // By default a secret can be null
+      secret_clear: '', // By default a secret can be null
+      expired: kdbxEntry.times.expires ? kdbxEntry.times.expiryTime?.toISOString() : null,
     };
-    if (typeof kdbxEntry.fields.get('Password') == 'object') {
+    if (typeof kdbxEntry.fields.get('Password') === 'object') {
       externalResourceDto.secret_clear = kdbxEntry.fields.get('Password').getText();
     }
-
-    // @todo pebble
-    const resourceType = this.parseResourceType();
-    if (resourceType) {
-      externalResourceDto.resource_type_id = resourceType.id;
-    }
-
-    // Sanitize.
-    if (!externalResourceDto.name.length) {
-      externalResourceDto.name = ExternalResourceEntity.DEFAULT_RESOURCE_NAME;
-    }
-
     try {
+      const totp = this.getTotp(kdbxEntry);
+      if (totp) {
+        externalResourceDto.totp = totp;
+        resourceTypeSlug = RESOURCE_TYPE_PASSWORD_DESCRIPTION_TOTP_SLUG;
+      }
+
+      // @todo pebble
+      const resourceType = this.parseResourceType(resourceTypeSlug);
+      if (resourceType) {
+        externalResourceDto.resource_type_id = resourceType.id;
+      }
+
+      // Sanitize.
+      if (!externalResourceDto.name.length) {
+        externalResourceDto.name = ExternalResourceEntity.DEFAULT_RESOURCE_NAME;
+      }
+
       this.importEntity.importResources.push(externalResourceDto);
     } catch (error) {
       this.importEntity.importResourcesErrors.push(new ImportError("Cannot parse resource", externalResourceDto, error));
@@ -150,13 +162,32 @@ class ResourcesKdbxImportParser {
   }
 
   /**
-   * Parse the resource type id
+   * Get the totp
+   * @param {kdbxweb.KdbxEntry} kdbxEntry
+   * @return {*}
+   */
+  getTotp(kdbxEntry) {
+    if (kdbxEntry.fields.get('otp')) {
+      const totpUrl = typeof kdbxEntry.fields.get('otp') === 'object' ? kdbxEntry.fields.get('otp').getText() : kdbxEntry.fields.get('otp');
+      const totpUrlDecoded = new URL(decodeURIComponent(totpUrl));
+      const totp = TotpEntity.createTotpFromUrl(totpUrlDecoded);
+      return totp.toDto();
+    } else if (typeof kdbxEntry.fields.get('TimeOtp-Secret-Base32') === 'object') {
+      const totp = TotpEntity.createTotpFromKdbxWindows(kdbxEntry.fields);
+      return totp.toDto();
+    }
+  }
+
+  /**
+   * Parse the resource type according to the resource type slug
+   * @param {string} resourceTypeSlug
    * @returns {ResourceTypeEntity}
    */
-  parseResourceType() {
+  parseResourceType(resourceTypeSlug) {
     if (this.resourceTypesCollection) {
-      return this.resourceTypesCollection.getFirst('slug', 'password-and-description');
+      return this.resourceTypesCollection.getFirst('slug', resourceTypeSlug);
     }
+    return null;
   }
 
   /**
