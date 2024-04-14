@@ -32,11 +32,14 @@ dream2nix.lib.evalModules {
           # nativeBuildInputs = [ pkgs.breakpointHook ];
 
           shellHook = ''
-            PATH=${builtins.toString ./.}/node_modules/.bin:$PATH;
+            REPO=$(git rev-parse --show-toplevel)
+            PATH=$REPO/node_modules/.bin:$PATH;
 
-            if [ "$(cat package-lock.json)" != "$(cat node_modules/_package-lock.json 2>/dev/null)" ]; then
-              npm install && \
-              cp package-lock.json node_modules/_package-lock.json
+            if [ "$(cat "$REPO/package-lock.json")" != "$(cat "$REPO/node_modules/_package-lock.json" 2>/dev/null)" ]; then
+              ( cd "$REPO" && \
+                npm install && \
+                cp package-lock.json node_modules/_package-lock.json
+              )
             fi
 
             echo "Build: grunt build-firefox  # generuje dist/firefox/passbolt-*.zip"
